@@ -10,10 +10,14 @@ import io.relayr.android.ble.BleUtils;
 import io.relayr.android.ble.RelayrBleSdk;
 import io.relayr.java.RelayrJavaApp;
 import io.relayr.java.RelayrJavaSdk;
+import io.relayr.java.model.Device;
+import io.relayr.java.model.Transmitter;
 import io.relayr.java.model.User;
 import io.relayr.android.log.Logger;
 import io.relayr.android.storage.DataStorage;
 import io.relayr.android.util.ReachabilityUtils;
+import io.relayr.java.model.account.Account;
+import io.relayr.java.model.groups.Group;
 import retrofit.RestAdapter.LogLevel;
 import rx.Observable;
 import rx.Subscriber;
@@ -26,26 +30,29 @@ import rx.android.schedulers.AndroidSchedulers;
  * {@link io.relayr.java.websocket.WebSocketClient}.
  * -----------------------------------------------------------------------------------------------
  * For easy start, after logging in, obtain {@link User} by calling {@link #getUser()}.
- * This is main object in Relayr SDK that can be used to fetch users {@link io.relayr.java.model.Device},
- * {@link io.relayr.java.model.Transmitter}, {@link io.relayr.java.model.groups.Group} and {@link io.relayr.java.model.account.Account} objects.
- * <p/>
+ * This is main object in Relayr SDK that can be used to fetch users {@link Device},
+ * {@link Transmitter}, {@link Group} and {@link Account} objects.
  * Every mentioned object has it's own interaction methods so direct usage of APIs is not necessary.
  * However it's still possible to obtain any of the desired API handlers through appropriate method:
  * <ul>
  * <li>{@link #getUserApi()}</li>
  * <li>{@link #getRelayrApi()}</li>
+ * <li>{@link #getDeviceApi()}</li>
  * <li>{@link #getGroupsApi()}</li>
  * <li>{@link #getAccountsApi()}</li>
- * <li>{@link #getDeviceApi()} ()}</li>
+ * <li>{@link #getPublishersApi()}</li>
+ * <li>{@link #getProjectsApi()}</li>
+ * <li>{@link #getRuleTemplateApi()}</li>
+ * <li>{@link #getHistoryApi()} or using {@link io.relayr.java.helper.HistoryHelper}</li>
  * <li>{@link #getDeviceModelsApi()} or using cache {@link #getDeviceModelsCache()} if
- * {@link io.relayr.android.RelayrSdk.Builder#cacheModels(boolean)} is set as true</li>
+ * {@link io.relayr.android.RelayrSdk.Builder#cacheModels(boolean)} is set as true </li>
  * </ul>
  * -----------------------------------------------------------------------------------------------
  * For other details check JavaDoc and other documentation:
- * Java-SDK: @see <a href="https://developer.relayr.io/documents/Java/Introduction</a> and
- * @see <a href="http://relayr.github.io/java-sdk/</a>
- * Android SDK: @see <a href="https://developer.relayr.io/documents/Android/Reference</a> and
- * @see <a href="https://developer.relayr.io/rendered-doc/javadoc/index.html</a>
+ * Java-SDK: @see <a href="https://developer.relayr.io/documents/Java/Introduction"></a> and
+ * @see <a href="http://relayr.github.io/java-sdk/"></a>
+ * Android SDK: @see <a href="https://developer.relayr.io/documents/Android/Reference"></a> and
+ * @see <a href="https://developer.relayr.io/rendered-doc/javadoc/index.html"></a>
  */
 public class RelayrSdk extends RelayrJavaSdk {
 
@@ -63,7 +70,7 @@ public class RelayrSdk extends RelayrJavaSdk {
 
     /**
      * Initializes the SDK. Should be built when the {@link android.app.Application} is
-     * created. After SDK is initiated
+     * created.
      */
     public static class Builder {
 
@@ -82,7 +89,8 @@ public class RelayrSdk extends RelayrJavaSdk {
          * Initializes the SDK in Mock Mode.
          * In this mode, mock reading values are generated.
          * Used for testing purposes, without the need of a WunderBar or an internet connection.
-         * By default FALSE.
+         * @param inMockMode - default FALSE.
+         * @return {@link io.relayr.android.RelayrSdk.Builder}
          */
         public Builder inMockMode(boolean inMockMode) {
             mockMode = inMockMode;
@@ -92,7 +100,8 @@ public class RelayrSdk extends RelayrJavaSdk {
         /**
          * Initializes the SDK in production or development mode.
          * Use each environment with corresponding API key.
-         * Default TRUE (uses production).
+         * @param production - Default TRUE (uses production).
+         * @return {@link io.relayr.android.RelayrSdk.Builder}
          */
         public Builder useProduction(boolean production) {
             this.production = production;
@@ -100,8 +109,8 @@ public class RelayrSdk extends RelayrJavaSdk {
         }
 
         /**
-         * If true it will cache all device models in the background.
-         * Default FALSE.
+         * @param cache - If true it will cache all device models in the background (default FALSE)
+         * @return {@link io.relayr.android.RelayrSdk.Builder}
          */
         public Builder cacheModels(boolean cache) {
             this.cacheModels = cache;
@@ -112,6 +121,8 @@ public class RelayrSdk extends RelayrJavaSdk {
          * Sets Log level for all API calls.
          * Defaults: in production {@link retrofit.RestAdapter.LogLevel#NONE}
          * in development {@link retrofit.RestAdapter.LogLevel#BASIC}
+         * @param level - {@link retrofit.RestAdapter.LogLevel}
+         * @return {@link io.relayr.android.RelayrSdk.Builder}
          */
         public Builder setLogLevel(LogLevel level) {
             if (level == null) throw new NullPointerException("Log level can not be NULL");
@@ -135,6 +146,8 @@ public class RelayrSdk extends RelayrJavaSdk {
 
     /**
      * Launches the login activity. Enables the user to log in to the relayr platform.
+     * @param activity - activity context
+     * @return {@link Observable<User>}
      */
     public static Observable<User> logIn(Activity activity) {
         if (activity == null) throw new NullPointerException("Activity can not be NULL!");
@@ -160,9 +173,7 @@ public class RelayrSdk extends RelayrJavaSdk {
         return DataStorage.isUserLoggedIn();
     }
 
-    /**
-     * Logs the user out of the relayr platform.
-     */
+    /** Logs the user out of the relayr platform. */
     public static void logOut() {
         DataStorage.logOut();
     }
@@ -172,6 +183,7 @@ public class RelayrSdk extends RelayrJavaSdk {
      * instead. In production mode messages will be saved locally and logged to platform
      * in bulks after every 5 logged messages. Connection availability and platform reachability
      * are checked automatically when using this method.
+     * @param message - string message to log
      * @return whether the logging event was performed
      */
     public static boolean logMessage(String message) {

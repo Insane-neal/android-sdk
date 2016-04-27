@@ -20,6 +20,7 @@ import static rx.Observable.error;
  * A class representing the service associated with the NEW_ON_BOARDING mode
  * @see {@link BleDeviceMode}
  */
+@Deprecated
 public class OnBoardingV2Service extends BaseService {
 
     public enum OnBoardingStatus {
