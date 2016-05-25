@@ -19,15 +19,15 @@ import javax.inject.Inject;
 import io.relayr.android.R;
 import io.relayr.android.RelayrApp;
 import io.relayr.android.RelayrSdk;
+import io.relayr.android.storage.DataStorage;
+import io.relayr.android.storage.RelayrProperties;
 import io.relayr.java.api.ApiModule;
 import io.relayr.java.api.OauthApi;
 import io.relayr.java.api.UserApi;
+import io.relayr.java.helper.observer.SimpleObserver;
 import io.relayr.java.model.OauthToken;
 import io.relayr.java.model.User;
-import io.relayr.android.storage.RelayrProperties;
-import io.relayr.android.storage.DataStorage;
 import rx.Observable;
-import rx.Observer;
 import rx.Subscriber;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Func1;
@@ -66,6 +66,13 @@ public class LoginActivity extends Activity {
         super.onResume();
 
         checkConditions();
+    }
+
+    @Override public void onBackPressed() {
+        super.onBackPressed();
+        finish();
+        Subscriber<? super User> subscriber = RelayrSdk.getLoginSubscriber();
+        if (subscriber != null) subscriber.onError(new Exception("Log in canceled"));
     }
 
     /* Called from xml */
@@ -167,22 +174,16 @@ public class LoginActivity extends Activity {
                             })
                             .subscribeOn(Schedulers.io())
                             .observeOn(AndroidSchedulers.mainThread())
-                            .subscribe(new Observer<User>() {
-
+                            .subscribe(new SimpleObserver<User>() {
                                 @Override
-                                public void onCompleted() {
-
-                                }
-
-                                @Override
-                                public void onError(Throwable e) {
+                                public void error(Throwable e) {
                                     finish();
                                     Subscriber<? super User> subscriber = RelayrSdk.getLoginSubscriber();
                                     if (subscriber != null) subscriber.onError(e);
                                 }
 
                                 @Override
-                                public void onNext(User user) {
+                                public void success(User user) {
                                     finish();
                                     Subscriber<? super User> subscriber = RelayrSdk.getLoginSubscriber();
                                     if (subscriber != null) subscriber.onNext(user);
