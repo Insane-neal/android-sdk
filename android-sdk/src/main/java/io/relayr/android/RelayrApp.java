@@ -21,7 +21,7 @@ public class RelayrApp {
     /**
      * Condition (sRelayrApp == null || mockMode) is used when Relayr app is already initialized
      * but you need to recreate it with another set of Dagger modules (e.g. while testing)
-     * @param context
+     * @param context app context
      * @param mockMode true for debug mode and tests
      */
     private static void init(Context context, boolean mockMode) {

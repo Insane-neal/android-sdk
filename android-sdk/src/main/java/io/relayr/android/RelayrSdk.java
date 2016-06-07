@@ -6,16 +6,17 @@ import android.content.Context;
 import javax.inject.Inject;
 
 import io.relayr.android.activity.LoginActivity;
+import io.relayr.android.api.Utils;
 import io.relayr.android.ble.BleUtils;
 import io.relayr.android.ble.RelayrBleSdk;
+import io.relayr.android.log.Logger;
+import io.relayr.android.storage.DataStorage;
+import io.relayr.android.util.ReachabilityUtils;
 import io.relayr.java.RelayrJavaApp;
 import io.relayr.java.RelayrJavaSdk;
 import io.relayr.java.model.Device;
 import io.relayr.java.model.Transmitter;
 import io.relayr.java.model.User;
-import io.relayr.android.log.Logger;
-import io.relayr.android.storage.DataStorage;
-import io.relayr.android.util.ReachabilityUtils;
 import io.relayr.java.model.account.Account;
 import io.relayr.java.model.groups.Group;
 import retrofit.RestAdapter.LogLevel;
@@ -132,7 +133,7 @@ public class RelayrSdk extends RelayrJavaSdk {
 
         public void build() {
             RelayrApp.init(mContext, mockMode, production, cacheModels, level);
-            RelayrJavaApp.init(DataStorage.getUserToken(), mockMode, production, cacheModels, level);
+            RelayrJavaApp.init(DataStorage.getUserToken(), mockMode, production, cacheModels, level, Utils.getUserAgent());
         }
     }
 
@@ -146,8 +147,14 @@ public class RelayrSdk extends RelayrJavaSdk {
 
     /**
      * Launches the login activity. Enables the user to log in to the relayr platform.
+     * Returns
+     * <ul>
+     * <li>onNext() with user object if login is successful</li>
+     * <li>onError() if there was an error</li>
+     * <li>onCompleted() if user stopped the login </li>
+     * </ul>
      * @param activity - activity context
-     * @return {@link Observable<User>}
+     * @return {@link Observable<User>} calls onNext() for success, onError() for error and onCompleted() for cancellation
      */
     public static Observable<User> logIn(Activity activity) {
         if (activity == null) throw new NullPointerException("Activity can not be NULL!");
