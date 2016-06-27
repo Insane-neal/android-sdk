@@ -76,10 +76,16 @@ public class RelayrSdk extends RelayrJavaSdk {
     public static class Builder {
 
         private final Context mContext;
+
         private boolean cacheModels = false;
         private boolean mockMode = false;
         private boolean production = true;
+
         private LogLevel level;
+        private String userAgent = Utils.getUserAgent();
+        private String mainApi;
+        private String historyApi;
+        private String mqttApi;
 
         public Builder(Context context) {
             if (context == null) throw new NullPointerException("Context can not be NULL");
@@ -131,9 +137,28 @@ public class RelayrSdk extends RelayrJavaSdk {
             return this;
         }
 
+        /** Define specific user agent for your app */
+        public Builder setUserAgent(String userAgent) {
+            this.userAgent = userAgent;
+            return this;
+        }
+
+        /** Set specific API urls. If not used, default relayr APIs are used. */
+        public Builder setApiUrls(String mainApi, String mqttApi, String historyApi) {
+            if (mainApi == null || mqttApi == null || historyApi == null)
+                throw new NullPointerException("Api point can not be NULL!");
+            this.mainApi = mainApi;
+            this.mqttApi = mqttApi;
+            this.historyApi = historyApi;
+            return this;
+        }
+
         public void build() {
             RelayrApp.init(mContext, mockMode, production, cacheModels, level);
-            RelayrJavaApp.init(DataStorage.getUserToken(), mockMode, production, cacheModels, level, Utils.getUserAgent());
+            if (mainApi == null)
+                RelayrJavaApp.init(DataStorage.getUserToken(), mockMode, production, cacheModels, level, userAgent);
+            else
+                RelayrJavaApp.init(DataStorage.getUserToken(), mockMode, production, cacheModels, level, userAgent, mainApi, mqttApi, historyApi);
         }
     }
 

@@ -21,7 +21,7 @@ import io.relayr.android.RelayrApp;
 import io.relayr.android.RelayrSdk;
 import io.relayr.android.storage.DataStorage;
 import io.relayr.android.storage.RelayrProperties;
-import io.relayr.java.api.ApiModule;
+import io.relayr.java.RelayrJavaApp;
 import io.relayr.java.api.OauthApi;
 import io.relayr.java.api.UserApi;
 import io.relayr.java.helper.observer.SimpleObserver;
@@ -210,7 +210,7 @@ public class LoginActivity extends Activity {
     }
 
     private String getLoginUrl() {
-        Uri.Builder uriBuilder = Uri.parse(ApiModule.getApiPoint()).buildUpon();
+        Uri.Builder uriBuilder = Uri.parse(RelayrJavaApp.getMainApiPoint()).buildUpon();
         uriBuilder.path("/oauth2/auth");
 
         uriBuilder.appendQueryParameter("client_id", RelayrProperties.get().appId);
