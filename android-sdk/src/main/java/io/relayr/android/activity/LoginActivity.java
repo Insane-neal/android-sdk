@@ -114,10 +114,13 @@ public class LoginActivity extends Activity {
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new SimpleObserver<Boolean>() {
                     @Override public void error(Throwable e) {
+                        Log.e("LoginActivity", "isPlatformReachable - error");
+                        e.printStackTrace();
                         showWarning(getString(R.string.platform_error));
                     }
 
                     @Override public void success(Boolean status) {
+                        Log.i("LoginActivity", "isPlatformReachable " + status);
                         if (status) showLogInScreen();
                         else showWarning(getString(R.string.platform_error));
                     }
@@ -126,6 +129,8 @@ public class LoginActivity extends Activity {
 
     @SuppressLint("SetJavaScriptEnabled")
     private void showLogInScreen() {
+        Log.i("LoginActivity", "showLogInScreen");
+
         mWebView.setWebChromeClient(new WebChromeClient());
         mWebView.setVerticalScrollBarEnabled(false);
 

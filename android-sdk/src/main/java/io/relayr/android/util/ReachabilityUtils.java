@@ -19,6 +19,7 @@ import io.relayr.java.api.CloudApi;
 import io.relayr.java.model.Status;
 import rx.Observable;
 import rx.Subscriber;
+import rx.functions.Action1;
 import rx.functions.Func1;
 import rx.schedulers.Schedulers;
 
@@ -37,7 +38,7 @@ public class ReachabilityUtils {
 
     public Observable<Boolean> isPlatformReachable() {
         if (!isConnectedToInternet()) return emptyResult();
-        else return isPlatformAvailable();
+        else return platformAvailable();
     }
 
     public boolean isConnectedToInternet() {
@@ -78,15 +79,20 @@ public class ReachabilityUtils {
 
     public Observable<Boolean> isPlatformAvailable() {
         if (!isPermissionGranted(RelayrSdk.PERMISSION_INTERNET)) return emptyResult();
+        else return platformAvailable();
 
-        return mApi.getServerStatus()
-                .subscribeOn(Schedulers.newThread())
-                .map(new Func1<Status, Boolean>() {
-                    @Override
-                    public Boolean call(Status status) {
-                        return status != null && status.getDatabase().equals("ok");
-                    }
-                });
+    }
+
+    //FIXME
+    private Observable<Boolean> platformAvailable() {
+        return Observable.just(true);
+        //        return mApi.getServerStatus()
+        //                .map(new Func1<Status, Boolean>() {
+        //                    @Override
+        //                    public Boolean call(Status status) {
+        //                        return status != null && status.getDatabase() != null && status.getDatabase().equals("ok");
+        //                    }
+        //                });
     }
 
     private Observable<Boolean> emptyResult() {
