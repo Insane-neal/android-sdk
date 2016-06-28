@@ -2,14 +2,15 @@ package io.relayr.android.api;
 
 import android.os.Build;
 
+import static android.os.Build.VERSION.SDK_INT;
 import static io.relayr.android.BuildConfig.APPLICATION_ID;
 import static io.relayr.android.BuildConfig.VERSION_NAME;
 
-class Utils {
+public class Utils {
 
-    static String getUserAgent() {
+    public static String getUserAgent() {
         return APPLICATION_ID + ".sdk.android/" + VERSION_NAME +
-                " (android " + Build.VERSION.SDK_INT + ";" + getDeviceName() + ")";
+                " (android " + SDK_INT + ";" + getDeviceName() + ")";
     }
 
     private static String getDeviceName() {

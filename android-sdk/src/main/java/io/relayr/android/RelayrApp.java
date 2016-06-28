@@ -21,16 +21,14 @@ public class RelayrApp {
     /**
      * Condition (sRelayrApp == null || mockMode) is used when Relayr app is already initialized
      * but you need to recreate it with another set of Dagger modules (e.g. while testing)
-     * @param context
+     * @param context  app context
      * @param mockMode true for debug mode and tests
      */
     private static void init(Context context, boolean mockMode) {
         reset();
         if (sRelayrApp == null || mockMode) {
             synchronized (new Object()) {
-                if (sRelayrApp == null || mockMode) {
-                    new RelayrApp(context, mockMode);
-                }
+                if (sRelayrApp == null || mockMode) new RelayrApp(context, mockMode);
             }
         }
     }
@@ -45,8 +43,8 @@ public class RelayrApp {
      *                   {@link RestAdapter.LogLevel#BASIC} for development
      */
     public static void init(Context context, boolean mock, boolean production, boolean cacheModels, RestAdapter.LogLevel level) {
-        RelayrJavaApp.PRODUCTION = production;
         RelayrJavaApp.setLogLevel(level);
+        RelayrJavaApp.setProduction(production);
         RelayrJavaApp.setModelsCache(cacheModels);
         init(context, mock);
     }

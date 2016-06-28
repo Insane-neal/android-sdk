@@ -19,15 +19,15 @@ import javax.inject.Inject;
 import io.relayr.android.R;
 import io.relayr.android.RelayrApp;
 import io.relayr.android.RelayrSdk;
-import io.relayr.java.api.ApiModule;
+import io.relayr.android.storage.DataStorage;
+import io.relayr.android.storage.RelayrProperties;
+import io.relayr.java.RelayrJavaApp;
 import io.relayr.java.api.OauthApi;
 import io.relayr.java.api.UserApi;
+import io.relayr.java.helper.observer.SimpleObserver;
 import io.relayr.java.model.OauthToken;
 import io.relayr.java.model.User;
-import io.relayr.android.storage.RelayrProperties;
-import io.relayr.android.storage.DataStorage;
 import rx.Observable;
-import rx.Observer;
 import rx.Subscriber;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Func1;
@@ -35,7 +35,7 @@ import rx.schedulers.Schedulers;
 
 public class LoginActivity extends Activity {
 
-    private static final String TAG = LoginActivity.class.getSimpleName();
+    private static final String TAG = "LoginActivity";
 
     @Inject OauthApi mOauthApi;
     @Inject UserApi mUserApi;
@@ -45,6 +45,12 @@ public class LoginActivity extends Activity {
     private View mLoadingView;
     private TextView mInfoText;
     private View mInfoView;
+
+    public static void startActivity(Activity currentActivity) {
+        Intent loginActivity = new Intent(currentActivity, LoginActivity.class);
+        loginActivity.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
+        currentActivity.startActivity(loginActivity);
+    }
 
     @SuppressLint("setJavaScriptEnabled")
     @Override
@@ -64,8 +70,15 @@ public class LoginActivity extends Activity {
     @Override
     protected void onResume() {
         super.onResume();
-
         checkConditions();
+    }
+
+    @Override public void onBackPressed() {
+        Subscriber<? super User> subscriber = RelayrSdk.getLoginSubscriber();
+        if (subscriber != null) subscriber.onCompleted();
+
+        super.onBackPressed();
+        finish();
     }
 
     /* Called from xml */
@@ -82,14 +95,12 @@ public class LoginActivity extends Activity {
         showView(mLoadingView);
 
         if (!RelayrSdk.isPermissionGrantedToAccessInternet()) {
-            showWarning(String.format(getString(R.string.permission_error),
-                    RelayrSdk.PERMISSION_INTERNET));
+            showWarning(String.format(getString(R.string.permission_error), RelayrSdk.PERMISSION_INTERNET));
             return;
         }
 
         if (!RelayrSdk.isPermissionGrantedToAccessTheNetwork()) {
-            showWarning(String.format(getString(R.string.permission_error),
-                    RelayrSdk.PERMISSION_NETWORK));
+            showWarning(String.format(getString(R.string.permission_error), RelayrSdk.PERMISSION_NETWORK));
             return;
         }
 
@@ -101,25 +112,25 @@ public class LoginActivity extends Activity {
         RelayrSdk.isPlatformReachable()
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Subscriber<Boolean>() {
-                    @Override
-                    public void onCompleted() {
-                    }
-
-                    @Override
-                    public void onError(Throwable e) {
+                .subscribe(new SimpleObserver<Boolean>() {
+                    @Override public void error(Throwable e) {
+                        Log.e("LoginActivity", "isPlatformReachable - error");
+                        e.printStackTrace();
                         showWarning(getString(R.string.platform_error));
                     }
 
-                    @Override
-                    public void onNext(Boolean status) {
+                    @Override public void success(Boolean status) {
+                        Log.i("LoginActivity", "isPlatformReachable " + status);
                         if (status) showLogInScreen();
                         else showWarning(getString(R.string.platform_error));
                     }
                 });
     }
 
+    @SuppressLint("SetJavaScriptEnabled")
     private void showLogInScreen() {
+        Log.i("LoginActivity", "showLogInScreen");
+
         mWebView.setWebChromeClient(new WebChromeClient());
         mWebView.setVerticalScrollBarEnabled(false);
 
@@ -167,25 +178,19 @@ public class LoginActivity extends Activity {
                             })
                             .subscribeOn(Schedulers.io())
                             .observeOn(AndroidSchedulers.mainThread())
-                            .subscribe(new Observer<User>() {
-
+                            .subscribe(new SimpleObserver<User>() {
                                 @Override
-                                public void onCompleted() {
-
-                                }
-
-                                @Override
-                                public void onError(Throwable e) {
-                                    finish();
+                                public void error(Throwable e) {
                                     Subscriber<? super User> subscriber = RelayrSdk.getLoginSubscriber();
                                     if (subscriber != null) subscriber.onError(e);
+                                    finish();
                                 }
 
                                 @Override
-                                public void onNext(User user) {
-                                    finish();
+                                public void success(User user) {
                                     Subscriber<? super User> subscriber = RelayrSdk.getLoginSubscriber();
                                     if (subscriber != null) subscriber.onNext(user);
+                                    finish();
                                 }
                             });
                 }
@@ -197,7 +202,6 @@ public class LoginActivity extends Activity {
 
     private void showWarning(String warning) {
         Log.e(TAG, warning);
-
         showView(mInfoView);
         mInfoText.setText(warning);
     }
@@ -211,7 +215,7 @@ public class LoginActivity extends Activity {
     }
 
     private String getLoginUrl() {
-        Uri.Builder uriBuilder = Uri.parse(ApiModule.getApiPoint()).buildUpon();
+        Uri.Builder uriBuilder = Uri.parse(RelayrJavaApp.getMainApiPoint()).buildUpon();
         uriBuilder.path("/oauth2/auth");
 
         uriBuilder.appendQueryParameter("client_id", RelayrProperties.get().appId);
@@ -233,11 +237,5 @@ public class LoginActivity extends Activity {
         } else {
             return null;
         }
-    }
-
-    public static void startActivity(Activity currentActivity) {
-        Intent loginActivity = new Intent(currentActivity, LoginActivity.class);
-        loginActivity.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
-        currentActivity.startActivity(loginActivity);
     }
 }
