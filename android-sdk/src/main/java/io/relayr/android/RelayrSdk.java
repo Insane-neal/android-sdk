@@ -84,8 +84,9 @@ public class RelayrSdk extends RelayrJavaSdk {
         private LogLevel level;
         private String userAgent = Utils.getUserAgent();
         private String mainApi;
-        private String historyApi;
         private String mqttApi;
+        private String historyApi;
+        private String notificationApi;
 
         public Builder(Context context) {
             if (context == null) throw new NullPointerException("Context can not be NULL");
@@ -144,12 +145,13 @@ public class RelayrSdk extends RelayrJavaSdk {
         }
 
         /** Set specific API urls. If not used, default relayr APIs are used. */
-        public Builder setApiUrls(String mainApi, String mqttApi, String historyApi) {
-            if (mainApi == null || mqttApi == null || historyApi == null)
+        public Builder setApiUrls(String mainApi, String mqttApi, String historyApi, String notificationApi) {
+            if (mainApi == null || mqttApi == null || historyApi == null || notificationApi == null)
                 throw new NullPointerException("Api point can not be NULL!");
             this.mainApi = mainApi;
             this.mqttApi = mqttApi;
             this.historyApi = historyApi;
+            this.notificationApi = notificationApi;
             return this;
         }
 
@@ -158,7 +160,8 @@ public class RelayrSdk extends RelayrJavaSdk {
             if (mainApi == null)
                 RelayrJavaApp.init(DataStorage.getUserToken(), mockMode, production, cacheModels, level, userAgent);
             else
-                RelayrJavaApp.init(DataStorage.getUserToken(), mockMode, production, cacheModels, level, userAgent, mainApi, mqttApi, historyApi);
+                RelayrJavaApp.init(DataStorage.getUserToken(), mockMode, production, cacheModels, level, userAgent,
+                        mainApi, mqttApi, historyApi, notificationApi);
         }
     }
 
@@ -182,6 +185,22 @@ public class RelayrSdk extends RelayrJavaSdk {
      * @return {@link Observable<User>} calls onNext() for success, onError() for error and onCompleted() for cancellation
      */
     public static Observable<User> logIn(Activity activity) {
+        return logIn(activity, false);
+    }
+
+    /**
+     * Launches the login activity. Enables the user to log in to the relayr platform.
+     * Returns
+     * <ul>
+     * <li>onNext() with user object if login is successful</li>
+     * <li>onError() if there was an error</li>
+     * <li>onCompleted() if user stopped the login </li>
+     * </ul>
+     * @param activity      - activity context
+     * @param finishOnError - activity will call finish() and return error that caused it (user can then show it's own warning)
+     * @return {@link Observable<User>} calls onNext() for success, onError() for error and onCompleted() for cancellation
+     */
+    public static Observable<User> logIn(Activity activity, boolean finishOnError) {
         if (activity == null) throw new NullPointerException("Activity can not be NULL!");
 
         Observable.OnSubscribe<User> onSubscribe = new Observable.OnSubscribe<User>() {
@@ -190,7 +209,7 @@ public class RelayrSdk extends RelayrJavaSdk {
                 loginSubscriber = subscriber;
             }
         };
-        LoginActivity.startActivity(activity);
+        LoginActivity.startActivity(activity, finishOnError);
         return Observable
                 .create(onSubscribe)
                 .observeOn(AndroidSchedulers.mainThread())

@@ -36,6 +36,7 @@ import rx.schedulers.Schedulers;
 public class LoginActivity extends Activity {
 
     private static final String TAG = "LoginActivity";
+    private static final String FINISH_ON_ERR = "FINISH_ON_ERR";
 
     @Inject OauthApi mOauthApi;
     @Inject UserApi mUserApi;
@@ -46,9 +47,17 @@ public class LoginActivity extends Activity {
     private TextView mInfoText;
     private View mInfoView;
 
-    public static void startActivity(Activity currentActivity) {
+    private Subscriber<? super User> mSubscriber;
+    private boolean mFinishOnError = false;
+
+    public static void startActivity(Activity activity) {
+        startActivity(activity, false);
+    }
+
+    public static void startActivity(Activity currentActivity, boolean finishOnError) {
         Intent loginActivity = new Intent(currentActivity, LoginActivity.class);
         loginActivity.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
+        loginActivity.putExtra(FINISH_ON_ERR, finishOnError);
         currentActivity.startActivity(loginActivity);
     }
 
@@ -57,6 +66,10 @@ public class LoginActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         RelayrApp.inject(this);
+
+        mSubscriber = RelayrSdk.getLoginSubscriber();
+        mFinishOnError = getIntent().getBooleanExtra(FINISH_ON_ERR, false);
+
         View view = View.inflate(this, R.layout.login_layout, null);
 
         mWebView = (WebView) view.findViewById(R.id.web_view);
@@ -74,8 +87,7 @@ public class LoginActivity extends Activity {
     }
 
     @Override public void onBackPressed() {
-        Subscriber<? super User> subscriber = RelayrSdk.getLoginSubscriber();
-        if (subscriber != null) subscriber.onCompleted();
+        if (mSubscriber != null) mSubscriber.onCompleted();
 
         super.onBackPressed();
         finish();
@@ -94,18 +106,23 @@ public class LoginActivity extends Activity {
     private void checkConditions() {
         showView(mLoadingView);
 
+        if (true) {
+            showWarning(String.format(getString(R.string.permission_error), RelayrSdk.PERMISSION_INTERNET), LoginException.permissionException());
+            return;
+        }
+
         if (!RelayrSdk.isPermissionGrantedToAccessInternet()) {
-            showWarning(String.format(getString(R.string.permission_error), RelayrSdk.PERMISSION_INTERNET));
+            showWarning(String.format(getString(R.string.permission_error), RelayrSdk.PERMISSION_INTERNET), LoginException.permissionException());
             return;
         }
 
         if (!RelayrSdk.isPermissionGrantedToAccessTheNetwork()) {
-            showWarning(String.format(getString(R.string.permission_error), RelayrSdk.PERMISSION_NETWORK));
+            showWarning(String.format(getString(R.string.permission_error), RelayrSdk.PERMISSION_NETWORK), LoginException.permissionException());
             return;
         }
 
         if (!RelayrSdk.isConnectedToInternet()) {
-            showWarning(getString(R.string.network_error));
+            showWarning(getString(R.string.network_error), LoginException.connectivityException());
             return;
         }
 
@@ -116,13 +133,13 @@ public class LoginActivity extends Activity {
                     @Override public void error(Throwable e) {
                         Log.e("LoginActivity", "isPlatformReachable - error");
                         e.printStackTrace();
-                        showWarning(getString(R.string.platform_error));
+                        showWarning(getString(R.string.platform_error), LoginException.platformException());
                     }
 
                     @Override public void success(Boolean status) {
                         Log.i("LoginActivity", "isPlatformReachable " + status);
                         if (status) showLogInScreen();
-                        else showWarning(getString(R.string.platform_error));
+                        else showWarning(getString(R.string.platform_error), LoginException.platformException());
                     }
                 });
     }
@@ -181,15 +198,13 @@ public class LoginActivity extends Activity {
                             .subscribe(new SimpleObserver<User>() {
                                 @Override
                                 public void error(Throwable e) {
-                                    Subscriber<? super User> subscriber = RelayrSdk.getLoginSubscriber();
-                                    if (subscriber != null) subscriber.onError(e);
+                                    if (mSubscriber != null) mSubscriber.onError(e);
                                     finish();
                                 }
 
                                 @Override
                                 public void success(User user) {
-                                    Subscriber<? super User> subscriber = RelayrSdk.getLoginSubscriber();
-                                    if (subscriber != null) subscriber.onNext(user);
+                                    if (mSubscriber != null) mSubscriber.onNext(user);
                                     finish();
                                 }
                             });
@@ -200,10 +215,15 @@ public class LoginActivity extends Activity {
         mWebView.loadUrl(getLoginUrl());
     }
 
-    private void showWarning(String warning) {
+    private void showWarning(String warning, LoginException e) {
         Log.e(TAG, warning);
-        showView(mInfoView);
-        mInfoText.setText(warning);
+        if (mFinishOnError) {
+            if (mSubscriber != null) mSubscriber.onError(e);
+            finish();
+        } else {
+            showView(mInfoView);
+            mInfoText.setText(warning);
+        }
     }
 
     private void showView(View view) {
