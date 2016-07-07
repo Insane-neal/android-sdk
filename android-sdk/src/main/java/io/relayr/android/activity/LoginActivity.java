@@ -104,13 +104,6 @@ public class LoginActivity extends Activity {
     }
 
     private void checkConditions() {
-        showView(mLoadingView);
-
-        if (true) {
-            showWarning(String.format(getString(R.string.permission_error), RelayrSdk.PERMISSION_INTERNET), LoginException.permissionException());
-            return;
-        }
-
         if (!RelayrSdk.isPermissionGrantedToAccessInternet()) {
             showWarning(String.format(getString(R.string.permission_error), RelayrSdk.PERMISSION_INTERNET), LoginException.permissionException());
             return;
@@ -126,6 +119,7 @@ public class LoginActivity extends Activity {
             return;
         }
 
+        showView(mLoadingView);
         RelayrSdk.isPlatformReachable()
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
