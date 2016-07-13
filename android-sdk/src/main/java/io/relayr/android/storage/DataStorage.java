@@ -5,6 +5,7 @@ import android.content.SharedPreferences;
 
 import io.relayr.android.RelayrApp;
 import io.relayr.java.RelayrJavaApp;
+import io.relayr.java.model.OauthToken;
 
 public class DataStorage {
 
@@ -14,17 +15,8 @@ public class DataStorage {
     private static final SharedPreferences STORAGE =
             RelayrApp.get().getSharedPreferences(STORAGE_FILE, Context.MODE_PRIVATE);
 
-    public static void saveUserToken(String userToken) {
-        RelayrJavaApp.setToken(userToken);
-        STORAGE.edit()
-                .putString(KEY_USER_TOKEN, userToken)
-                .apply();
-    }
-
     public static void saveUserId(String userId) {
-        STORAGE.edit()
-                .putString(KEY_USER_ID, userId)
-                .apply();
+        STORAGE.edit().putString(KEY_USER_ID, userId).apply();
     }
 
     public static boolean isUserLoggedIn() {
@@ -41,5 +33,14 @@ public class DataStorage {
 
     public static void logOut() {
         STORAGE.edit().clear().apply();
+    }
+
+    public static void saveUserToken(OauthToken token) {
+        saveUserToken(token.type + " " + token.token);
+    }
+
+    private static void saveUserToken(String userToken) {
+        RelayrJavaApp.setToken(userToken);
+        STORAGE.edit().putString(KEY_USER_TOKEN, userToken).apply();
     }
 }

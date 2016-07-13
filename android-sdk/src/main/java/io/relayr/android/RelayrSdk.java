@@ -156,12 +156,8 @@ public class RelayrSdk extends RelayrJavaSdk {
         }
 
         public void build() {
-            RelayrApp.init(mContext, mockMode, production, cacheModels, level);
-            if (mainApi == null)
-                RelayrJavaApp.init(DataStorage.getUserToken(), mockMode, production, cacheModels, level, userAgent);
-            else
-                RelayrJavaApp.init(DataStorage.getUserToken(), mockMode, production, cacheModels, level, userAgent,
-                        mainApi, mqttApi, historyApi, notificationApi);
+            RelayrApp.init(mContext, mockMode, production, cacheModels, level, userAgent,
+                    mainApi, mqttApi, historyApi, notificationApi);
         }
     }
 

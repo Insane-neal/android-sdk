@@ -176,7 +176,8 @@ public class LoginActivity extends Activity {
                             .flatMap(new Func1<OauthToken, Observable<User>>() {
                                 @Override
                                 public Observable<User> call(OauthToken token) {
-                                    DataStorage.saveUserToken(token.type + " " + token.token);
+                                    Log.i(TAG, "OauthToken: " + token.toString());
+                                    DataStorage.saveUserToken(token);
                                     return mUserApi.getUserInfo();
                                 }
                             })
