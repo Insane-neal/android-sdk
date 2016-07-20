@@ -131,7 +131,6 @@ public class LoginActivity extends Activity {
                     }
 
                     @Override public void success(Boolean status) {
-                        Log.i("LoginActivity", "isPlatformReachable " + status);
                         if (status) showLogInScreen();
                         else showWarning(getString(R.string.platform_error), LoginException.platformException());
                     }
@@ -140,8 +139,6 @@ public class LoginActivity extends Activity {
 
     @SuppressLint("SetJavaScriptEnabled")
     private void showLogInScreen() {
-        Log.i("LoginActivity", "showLogInScreen");
-
         mWebView.setWebChromeClient(new WebChromeClient());
         mWebView.setVerticalScrollBarEnabled(false);
 
@@ -236,7 +233,6 @@ public class LoginActivity extends Activity {
         uriBuilder.appendQueryParameter("client_id", RelayrProperties.get().appId);
         uriBuilder.appendQueryParameter("redirect_uri", RelayrProperties.get().redirectUri);
         uriBuilder.appendQueryParameter("response_type", "code");
-        uriBuilder.appendQueryParameter("scope", "access-own-user-info configure-devices");
 
         return uriBuilder.build().toString();
     }
@@ -247,7 +243,6 @@ public class LoginActivity extends Activity {
             int tokenPosition = url.indexOf(codeParam);
             String code = url.substring(tokenPosition + codeParam.length());
             if (code.contains("&")) code = code.substring(0, code.indexOf("&"));
-            Log.d(TAG, "Access code: " + code);
             return code;
         } else {
             return null;

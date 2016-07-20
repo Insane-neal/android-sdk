@@ -2,6 +2,7 @@ package io.relayr.android.storage;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.util.Log;
 
 import io.relayr.android.RelayrApp;
 import io.relayr.java.RelayrJavaApp;
@@ -36,6 +37,7 @@ public class DataStorage {
     }
 
     public static void saveUserToken(OauthToken token) {
+        Log.d("relayr_user_token", token.toString());
         saveUserToken(token.type + " " + token.token);
     }
 
