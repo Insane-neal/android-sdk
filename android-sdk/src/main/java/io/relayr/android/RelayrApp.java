@@ -44,16 +44,14 @@ public class RelayrApp {
      * @param mainApi         - relayr's main api url (default {@link RelayrJavaApp#API_DEFAULT_PROD})
      * @param mqttApi         - relayr's mqtt api url (default {@link RelayrJavaApp#API_DEFAULT_MQTT_PROD})
      * @param historyApi      - relayr's history api url (default {@link RelayrJavaApp#API_DEFAULT_HISTORY_PROD})
-     * @param notificationApi - relayr's history api url (default {@link RelayrJavaApp#API_DEFAULT_HISTORY_PROD})
      */
     public static void init(Context context, boolean mockMode, boolean production, boolean cacheModels,
-                            RestAdapter.LogLevel level, String userAgent,
-                            String mainApi, String mqttApi, String historyApi, String notificationApi) {
+                            RestAdapter.LogLevel level, String userAgent, String mainApi, String mqttApi, String historyApi) {
         sApplicationContext = context.getApplicationContext();
         if (mainApi == null)
             RelayrJavaApp.init(DataStorage.getUserToken(), mockMode, production, cacheModels, level, userAgent);
         else
-            RelayrJavaApp.init(DataStorage.getUserToken(), mockMode, production, cacheModels, level, userAgent, mainApi, mqttApi, historyApi, notificationApi);
+            RelayrJavaApp.init(DataStorage.getUserToken(), mockMode, production, cacheModels, level, userAgent, mainApi, mqttApi, historyApi);
         init(mockMode);
     }
 

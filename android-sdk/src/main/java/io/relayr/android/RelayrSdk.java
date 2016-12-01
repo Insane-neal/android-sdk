@@ -86,7 +86,6 @@ public class RelayrSdk extends RelayrJavaSdk {
         private String mainApi;
         private String mqttApi;
         private String historyApi;
-        private String notificationApi;
 
         public Builder(Context context) {
             if (context == null) throw new NullPointerException("Context can not be NULL");
@@ -146,18 +145,16 @@ public class RelayrSdk extends RelayrJavaSdk {
 
         /** Set specific API urls. If not used, default relayr APIs are used. */
         public Builder setApiUrls(String mainApi, String mqttApi, String historyApi, String notificationApi) {
-            if (mainApi == null || mqttApi == null || historyApi == null || notificationApi == null)
+            if (mainApi == null || mqttApi == null || historyApi == null)
                 throw new NullPointerException("Api point can not be NULL!");
             this.mainApi = mainApi;
             this.mqttApi = mqttApi;
             this.historyApi = historyApi;
-            this.notificationApi = notificationApi;
             return this;
         }
 
         public void build() {
-            RelayrApp.init(mContext, mockMode, production, cacheModels, level, userAgent,
-                    mainApi, mqttApi, historyApi, notificationApi);
+            RelayrApp.init(mContext, mockMode, production, cacheModels, level, userAgent, mainApi, mqttApi, historyApi);
         }
     }
 
