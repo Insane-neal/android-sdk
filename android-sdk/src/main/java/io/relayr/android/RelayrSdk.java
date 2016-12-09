@@ -12,7 +12,6 @@ import io.relayr.android.ble.RelayrBleSdk;
 import io.relayr.android.log.Logger;
 import io.relayr.android.storage.DataStorage;
 import io.relayr.android.util.ReachabilityUtils;
-import io.relayr.java.RelayrJavaApp;
 import io.relayr.java.RelayrJavaSdk;
 import io.relayr.java.model.Device;
 import io.relayr.java.model.Transmitter;
@@ -85,7 +84,6 @@ public class RelayrSdk extends RelayrJavaSdk {
         private String userAgent = Utils.getUserAgent();
         private String mainApi;
         private String mqttApi;
-        private String historyApi;
 
         public Builder(Context context) {
             if (context == null) throw new NullPointerException("Context can not be NULL");
@@ -144,17 +142,15 @@ public class RelayrSdk extends RelayrJavaSdk {
         }
 
         /** Set specific API urls. If not used, default relayr APIs are used. */
-        public Builder setApiUrls(String mainApi, String mqttApi, String historyApi, String notificationApi) {
-            if (mainApi == null || mqttApi == null || historyApi == null)
-                throw new NullPointerException("Api point can not be NULL!");
+        public Builder setApiUrls(String mainApi, String mqttApi) {
+            if (mainApi == null || mqttApi == null) throw new NullPointerException("Api endpoint can not be NULL!");
             this.mainApi = mainApi;
             this.mqttApi = mqttApi;
-            this.historyApi = historyApi;
             return this;
         }
 
         public void build() {
-            RelayrApp.init(mContext, mockMode, production, cacheModels, level, userAgent, mainApi, mqttApi, historyApi);
+            RelayrApp.init(mContext, mockMode, production, cacheModels, level, userAgent, mainApi, mqttApi);
         }
     }
 

@@ -35,23 +35,22 @@ public class RelayrApp {
     /**
      * Condition (sApp == null || mockMode) is used when Relayr app is already initialized
      * but you need to recreate it with another set of Dagger modules (e.g. while testing)
-     * @param mockMode        true for debug mode and tests
-     * @param production      if true production API is used, if false it uses development environment
-     * @param cacheModels     true to load and cache all the device models
-     * @param level           defines log level for all API calls - {@link RestAdapter.LogLevel#NONE}
-     *                        by default for production, {@link RestAdapter.LogLevel#BASIC} for development
-     * @param userAgent       agent identificator
-     * @param mainApi         - relayr's main api url (default {@link RelayrJavaApp#API_DEFAULT_PROD})
-     * @param mqttApi         - relayr's mqtt api url (default {@link RelayrJavaApp#API_DEFAULT_MQTT_PROD})
-     * @param historyApi      - relayr's history api url (default {@link RelayrJavaApp#API_DEFAULT_HISTORY_PROD})
+     * @param mockMode    - true for debug mode and tests
+     * @param production  - if true production API is used, if false it uses development environment
+     * @param cacheModels - true to load and cache all the device models
+     * @param level       - defines log level for all API calls - {@link RestAdapter.LogLevel#NONE}
+     *                    by default for production, {@link RestAdapter.LogLevel#BASIC} for development
+     * @param userAgent   agent identificator
+     * @param mainApi     - relayr's main api url (default {@link RelayrJavaApp#API_DEFAULT_PROD})
+     * @param mqttApi     - relayr's mqtt api url (default {@link RelayrJavaApp#API_DEFAULT_MQTT_PROD})
      */
     public static void init(Context context, boolean mockMode, boolean production, boolean cacheModels,
-                            RestAdapter.LogLevel level, String userAgent, String mainApi, String mqttApi, String historyApi) {
+                            RestAdapter.LogLevel level, String userAgent, String mainApi, String mqttApi) {
         sApplicationContext = context.getApplicationContext();
         if (mainApi == null)
             RelayrJavaApp.init(DataStorage.getUserToken(), mockMode, production, cacheModels, level, userAgent);
         else
-            RelayrJavaApp.init(DataStorage.getUserToken(), mockMode, production, cacheModels, level, userAgent, mainApi, mqttApi, historyApi);
+            RelayrJavaApp.init(DataStorage.getUserToken(), mockMode, production, cacheModels, level, userAgent, mainApi, mqttApi);
         init(mockMode);
     }
 
