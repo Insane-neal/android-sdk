@@ -233,6 +233,7 @@ public class LoginActivity extends Activity {
         uriBuilder.appendQueryParameter("client_id", RelayrProperties.get().appId);
         uriBuilder.appendQueryParameter("redirect_uri", RelayrProperties.get().redirectUri);
         uriBuilder.appendQueryParameter("response_type", "code");
+        uriBuilder.appendQueryParameter("scope", "access-own-user-info configure-devices");
 
         return uriBuilder.build().toString();
     }
