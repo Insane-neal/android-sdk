@@ -6,11 +6,10 @@ buildscript {
     }
 
     dependencies {
-        classpath 'com.android.tools.build:gradle:2.2.3'
-        classpath 'com.github.JakeWharton:sdk-manager-plugin:master'
+        classpath 'com.android.tools.build:gradle:2.3.0'
     }
 }
-apply plugin: 'android-sdk-manager'
+
 apply plugin: 'com.android.library'
 
 android {
